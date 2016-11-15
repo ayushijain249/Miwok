@@ -52,7 +52,6 @@ public class NumbersActivity extends AppCompatActivity {
             }
         });
 
-
        // Log.v("NumbersActivity","Word at 0th position is" + count[0]);
     }
     public void ReleaseMedia()

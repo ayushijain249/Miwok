@@ -37,10 +37,8 @@ public class FamilyActivity extends AppCompatActivity {
         count.add(new Word("Younger Sister","kolliti",R.drawable.family_younger_sister,R.raw.family_younger_sister));
         count.add(new Word("Grandmother","ama",R.drawable.family_grandmother,R.raw.family_grandmother));
         count.add(new Word("Grandfather","paapa",R.drawable.family_grandfather,R.raw.family_grandfather));
-
         WordAdaptor itemsAdapter = new WordAdaptor(this,count,R.color.category_family);
         ListView listView = (ListView) findViewById(R.id.list_view);
-
         listView.setAdapter(itemsAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
