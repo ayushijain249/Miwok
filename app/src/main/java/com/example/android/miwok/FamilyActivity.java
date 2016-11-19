@@ -18,7 +18,6 @@ public class FamilyActivity extends AppCompatActivity {
     MediaPlayer.OnCompletionListener mediaCompletion =new MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(MediaPlayer mp) {
-            Toast.makeText(FamilyActivity.this,"I'm done",Toast.LENGTH_SHORT).show();
             ReleaseMedia();
         }
     };
