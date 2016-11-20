@@ -1,24 +1,41 @@
 package com.example.android.miwok;
 
+import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
+
+import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT;
+import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
 
 
 public class FamilyActivity extends AppCompatActivity {
     MediaPlayer mediaPlayer;
+    private AudioManager mAudioManger;
+    AudioManager.OnAudioFocusChangeListener mOnAudioFocusListener =
+            new AudioManager.OnAudioFocusChangeListener() {
+                public void onAudioFocusChange(int focusChange) {
+                    if (focusChange == AUDIOFOCUS_LOSS_TRANSIENT || focusChange == AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
+                        mediaPlayer.pause();
+                        mediaPlayer.seekTo(0);
+                    } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN_TRANSIENT) {
+                        mediaPlayer.start();
+                    } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                        // Stop playback
+                        ReleaseMedia();
+                    }
+                }
+            };
     MediaPlayer.OnCompletionListener mediaCompletion =new MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(MediaPlayer mp) {
-            Toast.makeText(FamilyActivity.this,"I'm done",Toast.LENGTH_SHORT).show();
             ReleaseMedia();
         }
     };
@@ -26,6 +43,7 @@ public class FamilyActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.word_list);
+        mAudioManger = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         final ArrayList<Word> count = new ArrayList<Word>();
         count.add(new Word("Father","әpә",R.drawable.family_father,R.raw.family_father));
         count.add(new Word("Mother","әṭa",R.drawable.family_mother,R.raw.family_mother));
@@ -38,6 +56,8 @@ public class FamilyActivity extends AppCompatActivity {
         count.add(new Word("Grandmother","ama",R.drawable.family_grandmother,R.raw.family_grandmother));
         count.add(new Word("Grandfather","paapa",R.drawable.family_grandfather,R.raw.family_grandfather));
         WordAdaptor itemsAdapter = new WordAdaptor(this,count,R.color.category_family);
+
+
         ListView listView = (ListView) findViewById(R.id.list_view);
         listView.setAdapter(itemsAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -45,9 +65,18 @@ public class FamilyActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Word word = count.get(position);
                 ReleaseMedia();
-                mediaPlayer = MediaPlayer.create(FamilyActivity.this,word.getmAudio());
-                mediaPlayer.start();
-                mediaPlayer.setOnCompletionListener(mediaCompletion);
+                int result = mAudioManger.requestAudioFocus(mOnAudioFocusListener,
+                        // Use the music stream.
+                        AudioManager.STREAM_MUSIC,
+                        // Request permanent focus.
+                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+
+                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+
+                    mediaPlayer = MediaPlayer.create(FamilyActivity.this, word.getmAudio());
+                    mediaPlayer.start();
+                    mediaPlayer.setOnCompletionListener(mediaCompletion);
+                }
             }
         });
 
@@ -61,6 +90,7 @@ public class FamilyActivity extends AppCompatActivity {
         {
             mediaPlayer.release();
             mediaPlayer = null;
+            mAudioManger.abandonAudioFocus(mOnAudioFocusListener);
         }
     }
 }

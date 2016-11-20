@@ -1,5 +1,7 @@
 package com.example.android.miwok;
 
+import android.content.Context;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,6 +18,25 @@ import java.util.ArrayList;
 
 public class PhrasesActivity extends AppCompatActivity {
     MediaPlayer mediaPlayer;
+    AudioManager mAudioManager;
+    AudioManager.OnAudioFocusChangeListener mOnAudioFocusListener = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            if(focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK)
+            {
+                mediaPlayer.pause();
+                mediaPlayer.seekTo(0);
+            }
+            else if (focusChange == AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            {
+                mediaPlayer.start();
+            }
+            else if (focusChange == AudioManager.AUDIOFOCUS_LOSS)
+            {
+                ReleaseMedia();
+            }
+        }
+    };
     MediaPlayer.OnCompletionListener mediaCompletion =new MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(MediaPlayer mp) {
@@ -26,6 +47,7 @@ public class PhrasesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.word_list);
+        mAudioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
         final ArrayList<Word> count = new ArrayList<Word>();
         count.add(new Word("Where are you going?","minto wuksus",R.raw.phrase_where_are_you_going));
         count.add(new Word("What is your name?","tinnә oyaase'nә",R.raw.phrase_what_is_your_name));
@@ -46,9 +68,13 @@ public class PhrasesActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Word word = count.get(position);
                 ReleaseMedia();
-                mediaPlayer = MediaPlayer.create(PhrasesActivity.this,word.getmAudio());
-                mediaPlayer.start();
-                mediaPlayer.setOnCompletionListener(mediaCompletion);
+                int result = mAudioManager.requestAudioFocus(mOnAudioFocusListener,AudioManager.STREAM_MUSIC,AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+                {
+                    mediaPlayer = MediaPlayer.create(PhrasesActivity.this,word.getmAudio());
+                    mediaPlayer.start();
+                    mediaPlayer.setOnCompletionListener(mediaCompletion);
+                }
             }
         });
 
@@ -61,6 +87,7 @@ public class PhrasesActivity extends AppCompatActivity {
         {
             mediaPlayer.release();
             mediaPlayer = null;
+            mAudioManager.abandonAudioFocus(mOnAudioFocusListener);
         }
     }
 }

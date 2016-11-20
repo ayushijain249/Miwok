@@ -89,12 +89,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
                 .build();
 
         // Initialize ProgressBar and RecyclerView.
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+
         mLinearLayoutManager = new LinearLayoutManager(this);
         mLinearLayoutManager.setStackFromEnd(true);
 
 
-        mProgressBar.setVisibility(ProgressBar.INVISIBLE);
         TextView number = (TextView)findViewById(R.id.numbers);
         number.setOnClickListener(new View.OnClickListener() {
             @Override
