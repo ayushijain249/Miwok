@@ -84,6 +84,13 @@ public class ColorsActivity extends AppCompatActivity {
 
         // Log.v("NumbersActivity","Word at 0th position is" + count[0]);
     }
+
+    @Override
+    protected void onStop() {
+        ReleaseMedia();
+        super.onStop();
+    }
+
     public void ReleaseMedia()
     {
         if(mediaPlayer != null)
